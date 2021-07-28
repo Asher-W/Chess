@@ -56,6 +56,9 @@ class ChessPiece:
     def __init__(self, canvas, position, color, name):
         self.position = position
         self.image_path = sprite_names["w" + name] if color.lower() in ["w","white"] else sprite_names["b" + name]
+
+        image = ImageTk.PhotoImage(Image.open)
+        canvas.create_image
         
         self.position = position
         '''self.real_position = (
@@ -64,6 +67,8 @@ class ChessPiece:
         )'''
         
         self.canvas = canvas
+
+        canvas.create_image()
 
     def find_moves(self):
         return []
