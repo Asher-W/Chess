@@ -6,4 +6,6 @@ root = tk.Tk()
 root.geometry("640x640")
 root.resizable(0,0)
 
+CB.ChessBoard(root)
+
 root.mainloop()

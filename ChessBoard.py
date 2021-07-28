@@ -1,3 +1,5 @@
+from tkinter import Canvas, BOTH
+
 #image location
 sprite_folder = "Sprites"
 sprite_names = {
@@ -14,27 +16,38 @@ sprite_names = {
   "wQueen" : "/".join([sprite_folder + "WhiteQueen.png"]),
   "bQueen" : "/".join([sprite_folder + "BlackQueen.png"])
 }
+color_1 = "#000"
+color_2 = "#fff"
+label_size = 16
 
-'''
--Sprites
-    -wPawn
-    -bPawn
-    -wKing 
-    ...
+class ChessBoard(Canvas):
+    def __init__(self, root):
+        root.update()
+        space_width = int(min(root.winfo_width(), root.winfo_height()) / 8)
+        width =  space_width * 8
+        Canvas.__init__(self, root, width = width, height = width)
 
--Sprites
-    -Pawn
-        -White
-        -Black
-    -King
-        -White
-        -Black
-    ...
-'''
+        letter_spacing = int(label_size / 10) + 3
+        for x in range(8):
+            for y in range(8):
+                if y % 2: 
+                    box_color = color_1 if x % 2 else color_2
+                    text_color = color_1 if not x % 2 else color_2
+                else: 
+                    box_color = color_1 if not x % 2 else color_2
+                    text_color = color_1 if x % 2 else color_2
+                self.create_rectangle(x * space_width, y * space_width, ((x + 1) * space_width) - 1, ((y + 1) * space_width) - 1, fill = box_color)
+                
+                if not x:
+                    self.create_text(x * space_width + int(label_size / 2) + letter_spacing, 
+                      y * space_width + int(label_size / 2) + letter_spacing, text = y, 
+                      fill = text_color, font = ("Veranda", label_size))
+                if y == 7:
+                    self.create_text((x + 1) * space_width - int(label_size / 2) - letter_spacing, 
+                      (y + 1) * space_width - int(label_size / 2) - letter_spacing, text = chr(x + 97), 
+                      fill = text_color, font = ("Veranda", label_size))
 
-class ChessBoard:
-    def __init__(self, canvas):
-        pass
+        self.pack()
 
     def start(self):
         pass
@@ -46,11 +59,14 @@ class ChessPiece:
         
         self.position = position
         '''self.real_position = (
-          (canvas.winfo_width / 8) * position[0],
-          (canvas.winfo_height / 8) * position[1]
+          (canvas.winfo_width() / 8) * position[0],
+          (canvas.winfo_height() / 8) * position[1]
         )'''
         
         self.canvas = canvas
+
+    def find_moves(self):
+        return []
 
     def draw_spots(self, moves):
         pass
