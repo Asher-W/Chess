@@ -1,4 +1,5 @@
-from tkinter import Canvas, BOTH, PhotoImage, NW
+from tkinter import Canvas, PhotoImage
+from PIL import Image, ImageTk
 
 #image location
 sprite_folder = "Sprites"
@@ -11,7 +12,7 @@ sprite_names = {
   "bBishop" : "/".join([sprite_folder, "BlackBishop.ppm"]),
   "wKnight" : "/".join([sprite_folder, "WhiteKnight.ppm"]),
   "bKnight" : "/".join([sprite_folder, "BlackKnight.ppm"]),
-  "wKing" : "/".join([sprite_folder, "WhiteKing.ppm"]),
+  "wKing" : "/".join([sprite_folder, "WhiteKing.png"]),
   "bKing" : "/".join([sprite_folder, "BlackKing.ppm"]),
   "wQueen" : "/".join([sprite_folder, "WhiteQueen.ppm"]),
   "bQueen" : "/".join([sprite_folder, "BlackQueen.ppm"])
@@ -29,7 +30,7 @@ class ChessBoard(Canvas):
         self.pack()
 
         letter_spacing = int(label_size / 10) + 3
-        for x in range(8):
+        '''for x in range(8):
             for y in range(8):
                 if y % 2: 
                     box_color = color_1 if x % 2 else color_2
@@ -46,7 +47,8 @@ class ChessBoard(Canvas):
                 if y == 7:
                     self.create_text((x + 1) * space_width - int(label_size / 2) - letter_spacing, 
                       (y + 1) * space_width - int(label_size / 2) - letter_spacing, text = chr(x + 97), 
-                      fill = text_color, font = ("Veranda", label_size))
+                      fill = text_color, font = ("Veranda", label_size))'''
+
         king = King(self, (0, 0), "white")
 
     def start(self):
@@ -57,14 +59,19 @@ class ChessPiece:
         self.position = position
         self.image_path = sprite_names["w" + name] if color.lower() in ["w","white"] else sprite_names["b" + name]
 
-        image = PhotoImage(file = self.image_path)
-        canvas.create_image(64, 64, anchor = NW, image = image)
+        image = PhotoImage(self.image_path)
+        canvas.create_image(64, 64, anchor = "nw", image = image)
+
+        image = Image.open(self.image_path)
+        image = image.resize((400,400), Image.ANTIALIAS)
+        image = ImageTk.PhotoImage(image)
+        canvas.create_image(0,0, image=image, anchor='nw')
         
         self.position = position
-        '''self.real_position = (
+        self.real_position = (
           (canvas.winfo_width() / 8) * position[0],
           (canvas.winfo_height() / 8) * position[1]
-        )'''
+        )
         
         self.canvas = canvas
 
