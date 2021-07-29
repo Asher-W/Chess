@@ -6,7 +6,7 @@ def sigmoid(x):
 class Network:
     outputs = None
 
-    def __init__(self, shape=[], weights=[], biases=[]):
+    def __init__(self, shape=(), weights=[], biases=[]):
         self.shape = shape
         self.weights = weights
         self.biases = biases
