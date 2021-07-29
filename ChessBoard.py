@@ -1,21 +1,20 @@
 from tkinter import Canvas, BOTH, PhotoImage, NW
-from PIL import Image, ImageTk
 
 #image location
 sprite_folder = "Sprites"
 sprite_names = {
-  "wPawn" : "/".join([sprite_folder, "WhitePawn.png"]),
-  "bPawn" : "/".join([sprite_folder, "BlackPawn.png"]),
-  "wRook" : "/".join([sprite_folder, "WhiteRook.png"]),
+  "wPawn" : "/".join([sprite_folder, "WhitePawn.ppm"]),
+  "bPawn" : "/".join([sprite_folder, "BlackPawn.ppm"]),
+  "wRook" : "/".join([sprite_folder, "WhiteRook.ppm"]),
   "bRook" : "/".join([sprite_folder, "BlackRook.png"]),
-  "wBishop" : "/".join([sprite_folder, "WhiteBishop.png"]),
-  "bBishop" : "/".join([sprite_folder, "BlackBishop.png"]),
-  "wKnight" : "/".join([sprite_folder, "WhiteKnight.png"]),
-  "bKnight" : "/".join([sprite_folder, "BlackKnight.png"]),
-  "wKing" : "/".join([sprite_folder, "WhiteKing.png"]),
-  "bKing" : "/".join([sprite_folder, "BlackKing.png"]),
-  "wQueen" : "/".join([sprite_folder, "WhiteQueen.png"]),
-  "bQueen" : "/".join([sprite_folder, "BlackQueen.png"])
+  "wBishop" : "/".join([sprite_folder, "WhiteBishop.ppm"]),
+  "bBishop" : "/".join([sprite_folder, "BlackBishop.ppm"]),
+  "wKnight" : "/".join([sprite_folder, "WhiteKnight.ppm"]),
+  "bKnight" : "/".join([sprite_folder, "BlackKnight.ppm"]),
+  "wKing" : "/".join([sprite_folder, "WhiteKing.ppm"]),
+  "bKing" : "/".join([sprite_folder, "BlackKing.ppm"]),
+  "wQueen" : "/".join([sprite_folder, "WhiteQueen.ppm"]),
+  "bQueen" : "/".join([sprite_folder, "BlackQueen.ppm"])
 }
 color_1 = "#000"
 color_2 = "#fff"
@@ -58,10 +57,7 @@ class ChessPiece:
         self.position = position
         self.image_path = sprite_names["w" + name] if color.lower() in ["w","white"] else sprite_names["b" + name]
 
-        print(self.image_path)
-
-        self.image_file = Image.open(self.image_path)
-        image = ImageTk.PhotoImage(self.image_file)
+        image = PhotoImage(file = self.image_path)
         canvas.create_image(64, 64, anchor = NW, image = image)
         
         self.position = position
