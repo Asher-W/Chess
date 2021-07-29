@@ -28,9 +28,9 @@ class Network:
                 # Layer > node > node connections back
                 self.weights[-1].append([small_val() for k in range(self.shape[i])])
     
-    def tweak(self, change_limit):
+    def mutate(self, change_limit):
 
-        # Tweak weights
+        # Mutate weights
         for i in range(len(self.weights)):
             for j in range(len(self.weights[i])):
                 for k, weight in enumerate(self.weights[i][j]):
@@ -41,7 +41,7 @@ class Network:
                         new_value = -sigmoid(new_value)
                     self.weights[i][j][k] = new_value
         
-        # Tweak biases
+        # Mutate biases
         for i in range(len(self.biases)):
             self.biases[i] = [bias + small_val() * change_limit for bias in self.biases[i]]
 
@@ -56,7 +56,7 @@ class Network:
             nodes.append([0 for j in range(i)])
 
         nodes[0] = inputs
-        
+
         # Calculate
         for i, layer in enumerate(nodes[1::]):
             for j in range(len(layer)):
