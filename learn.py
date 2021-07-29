@@ -10,9 +10,8 @@ def small_val():
 class Network:
     outputs = None
 
-    def __init__(self, shape=[], inputs=None, weights=[], biases=[]):
+    def __init__(self, shape=[], weights=[], biases=[]):
         self.shape = shape
-        self.inputs = inputs
         self.weights = weights
         self.biases = biases
 
@@ -49,13 +48,15 @@ class Network:
 
     # TESTING NEEDED
     # Run with different layers and nodes and do the math to determine if it is calculating properly            
-    def calculate(self):
+    def calculate(self, inputs):
         
         # Make nodes
         nodes = []
         for i in self.shape:
             nodes.append([0 for j in range(i)])
 
+        nodes[0] = inputs
+        
         # Calculate
         for i, layer in enumerate(nodes[1::]):
             for j in range(len(layer)):
@@ -63,6 +64,8 @@ class Network:
                 for k in range(len(self.weights[i][j])):
                     list_sum += nodes[i][k] * self.weights[i][j][k]
                 nodes[i + 1][j] = list_sum + self.biases[i][j]
+        
+        return nodes[-1]
 
 # Create new network with shape (3, 5, 3)
 # net1 = Network(shape=(3, 5, 3))
