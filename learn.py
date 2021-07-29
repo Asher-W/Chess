@@ -36,7 +36,7 @@ class Network:
 
         # Calculate
         for i, layer in enumerate(nodes[1::]):
-            for j, node in enumerate(layer):
+            for j in range(len(layer)):
                 nodes[i + 1][j] = sigmoid(np.dot(nodes[i], self.weights[i][j]) + self.biases[i][j])
         
         return nodes[-1]
@@ -49,9 +49,5 @@ class Network:
 # print(net1.weights)
 # print(net1.biases)
 
-net1 = Network(shape=(3, 5, 3))
-net1.new()
-print(net1.biases)
-print(net1.weights)
-
-print(net1.calculate(np.array([0, 1, 1])))
+# Calculate with inputs [0, 1, 1]
+# print(net1.calculate(np.array([0, 1, 1])))
