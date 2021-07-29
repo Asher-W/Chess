@@ -65,6 +65,9 @@ class Network:
                     list_sum += nodes[i][k] * self.weights[i][j][k]
                 nodes[i + 1][j] = list_sum + self.biases[i][j]
         
+        # Apply sigmoid to outputs
+        nodes[-1] = [sigmoid[i] for i in nodes[-1]]
+        
         return nodes[-1]
 
 # Create new network with shape (3, 5, 3)
