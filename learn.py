@@ -45,9 +45,6 @@ class Network:
         for i in range(len(self.biases)):
             self.biases[i] = [bias + small_val() * change_limit for bias in self.biases[i]]
 
-
-    # TESTING NEEDED
-    # Run with different layers and nodes and do the math to determine if it is calculating properly            
     def calculate(self, inputs):
         
         # Make nodes
