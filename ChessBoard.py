@@ -1,20 +1,21 @@
-from tkinter import Canvas, BOTH
+from tkinter import Canvas, BOTH, PhotoImage, NW
+from PIL import Image, ImageTk
 
 #image location
 sprite_folder = "Sprites"
 sprite_names = {
-  "wPawn" : "/".join([sprite_folder + "WhitePawn.png"]),
-  "bPawn" : "/".join([sprite_folder + "BlackPawn.png"]),
-  "wRook" : "/".join([sprite_folder + "WhiteRook.png"]),
-  "bRook" : "/".join([sprite_folder + "BlackRook.png"]),
-  "wBishop" : "/".join([sprite_folder + "WhiteBishop.png"]),
-  "bBishop" : "/".join([sprite_folder + "BlackBishop.png"]),
-  "wKnight" : "/".join([sprite_folder + "WhiteKnight.png"]),
-  "bKnight" : "/".join([sprite_folder + "BlackKnight.png"]),
-  "wKing" : "/".join([sprite_folder + "WhiteKing.png"]),
-  "bKing" : "/".join([sprite_folder + "BlackKing.png"]),
-  "wQueen" : "/".join([sprite_folder + "WhiteQueen.png"]),
-  "bQueen" : "/".join([sprite_folder + "BlackQueen.png"])
+  "wPawn" : "/".join([sprite_folder, "WhitePawn.png"]),
+  "bPawn" : "/".join([sprite_folder, "BlackPawn.png"]),
+  "wRook" : "/".join([sprite_folder, "WhiteRook.png"]),
+  "bRook" : "/".join([sprite_folder, "BlackRook.png"]),
+  "wBishop" : "/".join([sprite_folder, "WhiteBishop.png"]),
+  "bBishop" : "/".join([sprite_folder, "BlackBishop.png"]),
+  "wKnight" : "/".join([sprite_folder, "WhiteKnight.png"]),
+  "bKnight" : "/".join([sprite_folder, "BlackKnight.png"]),
+  "wKing" : "/".join([sprite_folder, "WhiteKing.png"]),
+  "bKing" : "/".join([sprite_folder, "BlackKing.png"]),
+  "wQueen" : "/".join([sprite_folder, "WhiteQueen.png"]),
+  "bQueen" : "/".join([sprite_folder, "BlackQueen.png"])
 }
 color_1 = "#000"
 color_2 = "#fff"
@@ -26,6 +27,7 @@ class ChessBoard(Canvas):
         space_width = int(min(root.winfo_width(), root.winfo_height()) / 8)
         width =  space_width * 8
         Canvas.__init__(self, root, width = width, height = width)
+        self.pack()
 
         letter_spacing = int(label_size / 10) + 3
         for x in range(8):
@@ -46,8 +48,7 @@ class ChessBoard(Canvas):
                     self.create_text((x + 1) * space_width - int(label_size / 2) - letter_spacing, 
                       (y + 1) * space_width - int(label_size / 2) - letter_spacing, text = chr(x + 97), 
                       fill = text_color, font = ("Veranda", label_size))
-
-        self.pack()
+        king = King(self, (0, 0), "white")
 
     def start(self):
         pass
@@ -57,8 +58,11 @@ class ChessPiece:
         self.position = position
         self.image_path = sprite_names["w" + name] if color.lower() in ["w","white"] else sprite_names["b" + name]
 
-        image = ImageTk.PhotoImage(Image.open)
-        canvas.create_image
+        print(self.image_path)
+
+        self.image_file = Image.open(self.image_path)
+        image = ImageTk.PhotoImage(self.image_file)
+        canvas.create_image(64, 64, anchor = NW, image = image)
         
         self.position = position
         '''self.real_position = (
@@ -67,8 +71,6 @@ class ChessPiece:
         )'''
         
         self.canvas = canvas
-
-        canvas.create_image()
 
     def find_moves(self):
         return []
