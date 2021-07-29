@@ -60,10 +60,7 @@ class Network:
                 list_sum = 0
                 for k in range(len(self.weights[i][j])):
                     list_sum += nodes[i][k] * self.weights[i][j][k]
-                nodes[i + 1][j] = list_sum + self.biases[i][j]
-        
-        # Apply sigmoid to outputs
-        nodes[-1] = [sigmoid(i) for i in nodes[-1]]
+                nodes[i + 1][j] = sigmoid(list_sum + self.biases[i][j])
         
         return nodes[-1]
 
