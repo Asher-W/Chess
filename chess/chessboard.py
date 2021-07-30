@@ -2,20 +2,20 @@ from tkinter import Canvas, PhotoImage
 from PIL import Image, ImageTk
 
 #image location
-sprite_folder = "Sprites"
+sprite_folder = "sprites"
 sprite_names = {
-  "wPawn" : "/".join([sprite_folder, "WhitePawn.ppm"]),
-  "bPawn" : "/".join([sprite_folder, "BlackPawn.ppm"]),
-  "wRook" : "/".join([sprite_folder, "WhiteRook.ppm"]),
-  "bRook" : "/".join([sprite_folder, "BlackRook.png"]),
-  "wBishop" : "/".join([sprite_folder, "WhiteBishop.ppm"]),
-  "bBishop" : "/".join([sprite_folder, "BlackBishop.ppm"]),
-  "wKnight" : "/".join([sprite_folder, "WhiteKnight.ppm"]),
-  "bKnight" : "/".join([sprite_folder, "BlackKnight.ppm"]),
-  "wKing" : "/".join([sprite_folder, "WhiteKing.png"]),
-  "bKing" : "/".join([sprite_folder, "BlackKing.ppm"]),
-  "wQueen" : "/".join([sprite_folder, "WhiteQueen.ppm"]),
-  "bQueen" : "/".join([sprite_folder, "BlackQueen.ppm"])
+  "wPawn" : "/chess/".join([sprite_folder, "WhitePawn.ppm"]),
+  "bPawn" : "/chess/".join([sprite_folder, "BlackPawn.ppm"]),
+  "wRook" : "/chess/".join([sprite_folder, "WhiteRook.ppm"]),
+  "bRook" : "/chess/".join([sprite_folder, "BlackRook.png"]),
+  "wBishop" : "/chess/".join([sprite_folder, "WhiteBishop.ppm"]),
+  "bBishop" : "/chess/".join([sprite_folder, "BlackBishop.ppm"]),
+  "wKnight" : "/chess/".join([sprite_folder, "WhiteKnight.ppm"]),
+  "bKnight" : "/chess/".join([sprite_folder, "BlackKnight.ppm"]),
+  "wKing" : "/chess/".join([sprite_folder, "WhiteKing.png"]),
+  "bKing" : "/chess/".join([sprite_folder, "BlackKing.ppm"]),
+  "wQueen" : "/chess/".join([sprite_folder, "WhiteQueen.ppm"]),
+  "bQueen" : "/chess/".join([sprite_folder, "BlackQueen.ppm"])
 }
 color_1 = "#000"
 color_2 = "#fff"
