@@ -1,5 +1,5 @@
 import tkinter as tk
-import ChessBoard as CB
+import chessboard as CB
 
 root = tk.Tk()
 #edit and save geometry
