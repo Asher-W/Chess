@@ -11,6 +11,7 @@ class Network:
     move_history = []
     move_confidence = {}
     move = None
+    points = 0
 
     def __init__(self, shape=(), weights=[], biases=[], inputs=np.array([]), board=None, side=None):
         self.shape = shape
@@ -153,38 +154,60 @@ class Network:
         self.select_move()
         self.board.push(chess.Move.from_uci(self.move))
 
-# white - 0, black - 1
+def run_game(white_net, black_net, max_moves, cmd_print=False):
+    game_board = chess.Board()
+    
+    white_net.board = game_board
+    white_net.side = 0
 
-# Demonstration
-def main():
-    board = chess.Board()
-    print(board, '\n')
-
-    net1 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160), board=board, side=0)
-    net1.new()
-
-    net2 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160), board=board, side=1)
-    net2.new()
+    black_net.board = game_board
+    black_net.side = 1
 
     total_moves = 0
     while True:
+        if cmd_print:
+            print(game_board, '\n')
+        
+        # white - 0, black - 1
         if total_moves % 2 == 0:
-            net1.exec_move()
+            white_net.exec_move()
         else:
-            net2.exec_move()
+            black_net.exec_move()
 
-        print(board, '\n')
-
-        if board.is_checkmate():
-            print('Win')
-            break
-        elif board.is_stalemate():
-            print('Stalemate')
-            break
-        elif total_moves == 400:
-            print('Too many moves')
-            break
+        if game_board.is_checkmate():
+            if total_moves % 2 == 0:
+                white_net.points += 10
+                black_net.point += 1
+                return 'white win', game_board.board_fen()
+            else:
+                white_net.points += 1
+                black_net.points += 10
+                return 'black win', game_board.board_fen()
+        elif game_board.is_stalemate():
+            white_net.points += 5
+            black_net.points += 5
+            return 'stalemate', game_board.board_fen()
+        elif game_board.is_insufficient_material():
+            return 'insufficient material', game_board.board_fen()
+        elif total_moves == max_moves:
+            white_net.points -= 2
+            black_net.points -= 2
+            return 'maxed', game_board.board_fen()
         
         total_moves += 1
+
+# Demonstration
+def main():
+
+    net1 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    net1.new()
+
+    net2 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    net2.new()
+
+    print(run_game(net1, net2, 400, cmd_print=True))
+
+    print(net1.points)
+    print(net2.points)
 
 main()
