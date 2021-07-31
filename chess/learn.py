@@ -298,6 +298,11 @@ def main():
     # nets, points = run_generation([parent1, parent2, parent3, parent4, parent5], 50, 4, 0.3)
     print(nets, points)
 
+    outfile = open('networks.p','wb')
+    pickle.dump(nets, outfile)
+    pickle.dump(points, outfile)
+    outfile.close()
+
 main()
 t2 = time.time()
 print(t2 - t1)
