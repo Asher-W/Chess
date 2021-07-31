@@ -1,28 +1,11 @@
 import tkinter as tk
-from PIL import ImageTk, Image
+import chesspieces as cp
 
 #font details
 font, text_margin = ("Veranda", 20), 5
 
-#image location
-sprite_folder = "chess/sprites"
-sprite_names = {
-  "wPawn" : "/".join([sprite_folder, "WhitePawn.png"]),
-  "bPawn" : "/".join([sprite_folder, "BlackPawn.png"]),
-  "wRook" : "/".join([sprite_folder, "WhiteRook.png"]),
-  "bRook" : "/".join([sprite_folder, "BlackRook.png"]),
-  "wBishop" : "/".join([sprite_folder, "WhiteBishop.png"]),
-  "bBishop" : "/".join([sprite_folder, "BlackBishop.png"]),
-  "wKnight" : "/".join([sprite_folder, "WhiteKnight.png"]),
-  "bKnight" : "/".join([sprite_folder, "BlackKnight.png"]),
-  "wKing" : "/".join([sprite_folder, "WhiteKing.png"]),
-  "bKing" : "/".join([sprite_folder, "BlackKing.png"]),
-  "wQueen" : "/".join([sprite_folder, "WhiteQueen.png"]),
-  "bQueen" : "/".join([sprite_folder, "BlackQueen.png"])
-}
-
 class ChessBoard(tk.Canvas):
-    def __init__(self, root, pattern = "rnbqkbnr/pppppppp/3b4/3b4/3k4/8/PPPPPPPP/RNBQKBNR"):
+    def __init__(self, root, pattern = "rnbqkbnr/pppppppp/8/8/8/pppppppp/PPPPPPPP/RNBQKBNR"):
         self.size = min(max(min(int(root.winfo_width()/8), int(root.winfo_height()/8)) * 8, 640), 1280)
         self.space_width = self.size / 8
         self.root = root
@@ -33,7 +16,9 @@ class ChessBoard(tk.Canvas):
         self.draw()
         self.start(pattern)
 
-        root.bind("<Motion>", lambda e: self.hover())
+        root.bind("<Motion>", self.hover)
+        self.selected = None
+        root.bind("<Button-1>", self.move)
 
     def draw(self):
         for x in range(8):
@@ -63,16 +48,48 @@ class ChessBoard(tk.Canvas):
             color = "black" if i_val > 97 else "white"
             
             i = i.lower()
-            if i == "p": self.board[y].append(Pawn(self, (x,y), color))
-            if i == "r": self.board[y].append(Rook(self, (x,y), color))
-            if i == "n": self.board[y].append(Knight(self, (x,y), color))
-            if i == "b": self.board[y].append(Bishop(self, (x,y), color))
-            if i == "q": self.board[y].append(Queen(self, (x,y), color))
-            if i == "k": self.board[y].append(King(self, (x,y), color))
+            if i == "p": self.board[y].append(cp.Pawn(self, (x,y), color))
+            if i == "r": self.board[y].append(cp.Rook(self, (x,y), color))
+            if i == "n": self.board[y].append(cp.Knight(self, (x,y), color))
+            if i == "b": self.board[y].append(cp.Bishop(self, (x,y), color))
+            if i == "q": self.board[y].append(cp.Queen(self, (x,y), color))
+            if i == "k": self.board[y].append(cp.King(self, (x,y), color))
             
             x += 1
+    def get_board(self):
+        board = ""
+        for y in range(8):
+            count = 0
+            for x in range(8):
+                if not self.board[y][x]:
+                    count += 1
+                    continue
+                else:
+                    space = self.board[y][x]
+
+                    if isinstance(space, cp.Pawn):
+                        new_letter = "p"
+                    if isinstance(space, cp.Rook):
+                        new_letter = "r"
+                    if isinstance(space, cp.Knight):
+                        new_letter = "n"
+                    if isinstance(space, cp.Bishop):
+                        new_letter = "b"
+                    if isinstance(space, cp.Queen):
+                        new_letter = "q"
+                    if isinstance(space, cp.King):
+                        new_letter = "k"
+                    
+                    if space.color == "white":
+                        new_letter = new_letter.upper()
+
+                    board = board + new_letter
+            if count != 0: board = board + str(count)
+            board = board + "/"
+        
+        return board
     
-    def hover(self):
+    def hover(self, e):
         self.root.update()
         px = self.root.winfo_pointerx() - self.winfo_rootx()
         py = self.root.winfo_pointery() - self.winfo_rooty()
@@ -98,156 +115,146 @@ class ChessBoard(tk.Canvas):
 
             self.tag_raise("labels")
             self.tag_raise("pieces")
+    
+    def move(self, e):
+        self.root.update()
+        px = self.root.winfo_pointerx() - self.winfo_rootx()
+        py = self.root.winfo_pointery() - self.winfo_rooty()
+
+        x, y = int(px / self.space_width), int(py / self.space_width)
+
+        self.delete("select")
+        if not 0 <= x <= 7 or not 0 <= y <= 7: return
+
+        margin = 10
+        if self.board[y][x]:
+            self.create_rectangle(x*self.space_width + margin, y*self.space_width + margin, 
+              (x+1)*self.space_width - margin, (y+1)*self.space_width - margin, 
+              tags = "select", fill = "blue")
+            
+            self.root.unbind("<Motion>")
+            self.root.unbind("<Button-1>")
+
+            self.root.bind("<Button-1>", self.place_piece)
+            self.root.bind("<Escape>", self.reset_click)
+            self.selected = (x, y)
+
+            self.tag_raise("labels")
+            self.tag_raise("pieces")
+    
+    def place_piece(self, e):
+        self.root.update()
+        px = self.root.winfo_pointerx() - self.winfo_rootx()
+        py = self.root.winfo_pointery() - self.winfo_rooty()
+
+        x, y = int(px / self.space_width), int(py / self.space_width)
+
+        if isinstance(self.selected, tuple) and  0 <= x <= 7 and 0 <= y <= 7:
+            print(self.moves, self.selected)
+            if [x, y] in self.moves:
+                self.board[y][x] = self.board[self.selected[1]][self.selected[0]]
+                self.board[self.selected[1]][self.selected[0]].move((x,y))
+                self.board[self.selected[1]][self.selected[0]] = ""
+        self.reset_click(e)
+
+    def reset_click(self, e):
+        self.delete("select")
+        self.selected = None
+        self.root.bind("<Motion>", self.hover)
+        self.root.bind("<Button-1>", self.move)
 
     def is_occupied(self, *args):
-        if isinstance(args[0], list) or isinstance(args[0], list):
-            return self.board[args[0][0]][args[0][1]].color
+        if isinstance(args[0], list) or isinstance(args[0], set) or isinstance(args[0], tuple):
+            return self.board[args[0][1]][args[0][0]]
         if len(args) == 1 and isinstance(args[0], int):
-            return self.board[int(args[0] / 8)][args[0] % 8].color
+            return self.board[int(args[0] / 8)][args[0] % 8]
         elif len(args) >= 2:
             if isinstance(args[0], int) and isinstance(args[1], int):
-                return self.board[args[1]][args[0]].color
+                return self.board[args[1]][args[0]]
+        return False
 
-class ChessPiece:
-    def __init__(self, canvas, position, color, name):
-        self.position, self.color = position, color
-        self.image_path = sprite_names["w" + name] if color.lower() in ["w","white"] else sprite_names["b" + name]
+class QuickBoard(tk.Canvas):
+    def __init__(self, root, pattern = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"):
+        self.size = min(max(min(int(root.winfo_width()/8), int(root.winfo_height()/8)) * 8, 640), 1280)
+        self.space_width = self.size / 8
+        self.root = root
+
+        tk.Canvas.__init__(self, root, height = self.size, width = self.size)
+        self.pack()
+
+        for x in range(8):
+            for y in range(8):
+                self.create_rectangle(x*self.space_width, y*self.space_width, (x+1)*self.space_width, (y+1)*self.space_width,
+                  fill = "black" if (x % 2) - (y % 2) else "white")
+                if not x:
+                    self.create_text(text_margin, (y*self.space_width) + text_margin, anchor = tk.NW,
+                      fill = "white" if y % 2 else "black", font = font, text = y + 1, tags = "labels")
+            self.create_text((x + 1)*self.space_width - text_margin, 8*self.space_width - text_margin, anchor = tk.SE,
+              fill = "black" if x % 2 else "white", font = font, text = chr(x + 97), tags ="labels")
+    
+        if pattern:
+            self.draw_pieces(pattern)
+
+    def draw_pieces(self, pattern):
+
+        if not hasattr(self.root, "chess_piece_images"):
+            self.root.chess_piece_images = []
+        elif not isinstance(self.root.chess_piece_images, list):
+            self.root.chess_piece_images = []
+
+        self.delete("pieces")
+
+        x, y = 0, 0
+        self.board = [[] for i in range(8)]
+        for i in pattern:
+            if i == "/":
+                x= 0
+                y += 1
+                continue
+            if i.isnumeric():
+                for i in range(int(i)):
+                    self.board[y].append("")
+                x += int(i)
+                continue
+            i_val = ord(i)
+            color = "b" if i_val > 97 else "w"
+            
+            i = i.lower()
+            
+            if i == "p": sprite = color + "Pawn"
+            if i == "r": sprite = color + "Rook"
+            if i == "n": sprite = color + "Knight"
+            if i == "b": sprite = color + "Bishop"
+            if i == "q": sprite = color + "Queen"
+            if i == "k": sprite = color + "King"
+
+            image = ImageTk.PhotoImage(image = Image.open(cp.sprite_names[sprite]))
+            self.root.chess_piece_images.append(image)
+            self.create_image(x * self.space_width + int((self.space_width - 64)/2),
+              y * self.space_width + int((self.space_width - 64)/2), anchor = tk.NW, 
+              image = image, tags = "pieces")
+            
+            x += 1  
+
+    def get_board(self):
+        board = ""
+        for y in range(8):
+            count = 0
+            for x in range(8):
+                if not self.board[y][x]:
+                    count += 1
+                    continue
+                else:
+                    if self.board[y][x][1:] == "Knight":
+                        new_letter = "n"
+                    else:
+                        new_letter = self.board[y][x][1].lower()
+                    
+                    if self.board[y][x][0] == "w":
+                        new_letter = new_letter.upper()
+                    
+                    board = board + new_letter
+            if count != 0: board = board + str(count)
+            board = board + "/"
         
-        self.canvas = canvas
-
-        self.position = position
-        real_position = self.find_real()
-        
-        chess_piece_images = ImageTk.PhotoImage(image = Image.open(self.image_path))
-
-        if not hasattr(canvas._root(), "chess_piece_images"):
-            canvas._root().chess_piece_images = [chess_piece_images]
-        elif not isinstance(canvas._root().chess_piece_images, list):
-            canvas._root().chess_piece_images = [chess_piece_images]
-        else: canvas._root().chess_piece_images.append(chess_piece_images)
-
-        canvas.create_image(real_position[0], real_position[1], anchor = tk.NW, 
-          image = chess_piece_images, tags = "pieces")
-    def find_real(self):
-        return (
-            self.position[0] * self.canvas.space_width + int((self.canvas.space_width - 64)/2),
-            self.position[1] * self.canvas.space_width + int((self.canvas.space_width - 64)/2),
-        )
-    def find_moves(self):
-        return []
-
-    def draw_spots(self, moves):
-        pass
-
-class Pawn(ChessPiece):
-    def __init__(self, canvas, position, color):
-        ChessPiece.__init__(self, canvas, position, color, "Pawn")
-
-        self.direction = 1 if color.lower() in ["black", "b"] else -1
-        self.moved = 0
-
-    def find_moves(self):
-        moves = []
-        if not self.moved:  
-            if 0 <= self.position[1] + self.direction < 8 and not(
-              self.canvas.is_occupied(self.position[0], self.position[1] + self.direction)): 
-                moves.append([self.position[0], self.position[1] + self.direction])
-                if 0 <= self.position[1] + (2 * self.direction) < 8 and not(
-                  self.canvas.is_occupied(self.position[0], self.position[1] + (2 * self.direction))): 
-                    moves.append([self.position[0], self.position[1] + (2 * self.direction)])
-        else:
-            if 0 <= self.position[1] + self.direction < 8: 
-                moves.append([self.position[0], self.position[1] + self.direction])
-
-        return moves
-
-class Rook(ChessPiece):
-    def __init__(self, canvas, position, color):
-        ChessPiece.__init__(self, canvas, position, color, "Rook")
-
-    def find_moves(self):
-        moves = []
-        for i in range(self.position[1] - 1, -1, -1):
-            if self.canvas.is_occupied(self.position[0], i): break
-            moves.append([self.position[0], i])
-        for i in range(self.position[1] + 1, 8):
-            if self.canvas.is_occupied(self.position[0], i): break
-            moves.append([self.position[0], i])
-        for i in range(self.position[0] - 1, -1, -1):
-            if self.canvas.is_occupied(i, self.position[1]): break
-            moves.append([i, self.position[1]])
-        for i in range(self.position[0] + 1, 8):
-            if self.canvas.is_occupied(i, self.position[1]): break
-            moves.append([i, self.position[1]])
-        
-        return moves
-
-class Bishop(ChessPiece):
-    def __init__(self, canvas, position, color):
-        ChessPiece.__init__(self, canvas, position, color, "Bishop")
-
-    def find_moves(self):
-        moves = []
-        for mod in range(1, min(self.position[0] + 1, self.position[1] + 1)):
-            if self.canvas.is_occupied(self.position[0] - mod, self.position[1] - mod): break
-            moves.append([self.position[0] - mod, self.position[1] - mod])
-        for mod in range(1, min(8 - self.position[0], self.position[1] + 1)):
-            if self.canvas.is_occupied(self.position[0] + mod, self.position[1] - mod): break
-            moves.append([self.position[0] + mod, self.position[1] - mod])
-        for mod in range(1, min(8 - self.position[0], 8 - self.position[1])):
-            if self.canvas.is_occupied(self.position[0] + mod, self.position[1] + mod): break
-            moves.append([self.position[0] + mod, self.position[1] + mod])
-        for mod in range(1, min(self.position[0] + 1, 8 - self.position[1])):
-            if self.canvas.is_occupied(self.position[0] - mod, self.position[1] + mod): break
-            moves.append([self.position[0] - mod, self.position[1] + mod])
-        
-        return moves
-
-class Knight(ChessPiece):
-    def __init__(self, canvas, position, color):
-        ChessPiece.__init__(self, canvas, position, color, "Knight")
-
-    def find_moves(self):
-        moves = []
-        for x in [-2, 2]:
-            for i in [-1, 1]:
-                pos_move = [self.position[0] + i, self.position[1] + x]
-                if 0 <= pos_move[0] < 8 and 0 <= pos_move[1] < 8:
-                    if self.canvas.is_occupied(pos_move): continue
-                    moves.append(pos_move)
-        for y in [-2, 2]:
-            for i in [-1, 1]:
-                pos_move = [self.position[0] + y, self.position[1] + i]
-                if 0 <= pos_move[0] < 8 and 0 <= pos_move[1] < 8:
-                    if self.canvas.is_occupied(pos_move): continue
-                    moves.append(pos_move)
-        
-        return moves
-
-class King(ChessPiece):
-    def __init__(self, canvas, position, color):
-        ChessPiece.__init__(self, canvas, position, color, "King")
-
-    def find_moves(self):
-        moves = []
-        for x in [-1, 0 , 1]:
-            for y in [-1, 0, 1]:
-                if [x, y] == [0, 0]: continue
-                new_pos = [self.position[0] + x, self.position[1] + y]
-                if 0 <= new_pos[0] < 8 and 0 <= new_pos[1] < 8:
-                    if self.canvas.is_occupied(new_pos): continue
-                    moves.append(new_pos)
-        
-        return moves
-
-class Queen(Rook, Bishop):
-    def __init__(self, canvas, position, color):
-        ChessPiece.__init__(self, canvas, position, color, "Queen")
-
-    def find_moves(self):
-        moves = (
-            *Rook.find_moves(self),
-            *Bishop.find_moves(self),
-        )
-
-        return moves
+        return board
