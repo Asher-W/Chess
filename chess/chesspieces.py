@@ -20,8 +20,8 @@ sprite_names = {
 
 class ChessPiece:
     def __init__(self, canvas, position, color, name):
-        self.position, self.color = position, color
-        self.image_path = sprite_names["w" + name] if color.lower() in ["w","white"] else sprite_names["b" + name]
+        self.position, self.color = position, "white" if color.lower() in ["w","white"] else "black"
+        self.image_path = sprite_names[color[0] + name]
 
         self.canvas = canvas
 
@@ -52,12 +52,21 @@ class ChessPiece:
     def find_moves(self):
         return []
 
+    def delete(self):
+        self.canvas.delete(self.image)
+
     def move(self, new_position):
         self.canvas.delete(self.image)
 
         self.position = new_position
 
         self.draw_image()
+    
+    def manage_check(self, move):
+        tmp_board = [*self.canvas.board]
+        if self.canvas.check_for_check(tmp_board, self.color):
+            return True
+        return False
 
 class Pawn(ChessPiece):
     def __init__(self, canvas, position, color):
@@ -66,12 +75,12 @@ class Pawn(ChessPiece):
         self.direction = 1 if color.lower() in ["black", "b"] else -1
         self.moved = 0
 
-    def find_moves(self):
+    def find_moves(self, checking = True):
         moves = []
         if 0 <= self.position[1] + self.direction < 8:
             if not(self.canvas.is_occupied(self.position[0], self.position[1] + self.direction)): 
                 moves.append([self.position[0], self.position[1] + self.direction])
-                if 0 <= self.position[1] + (2 * self.direction) < 8 and not(
+                if (0 <= self.position[1] + (2 * self.direction) < 8 and not
                   self.canvas.is_occupied(self.position[0], self.position[1] + (2 * self.direction))
                   and not self.moved): 
                     moves.append([self.position[0], self.position[1] + (2 * self.direction)])
@@ -81,11 +90,15 @@ class Pawn(ChessPiece):
                 space = self.canvas.is_occupied(self.position[0] + i, self.position[1] + self.direction)
                 if space:
                     if space.color != self.color:
-                        moves.append((self.position[0] + i, self.position[1] + self.direction))
+                        moves.append([self.position[0] + i, self.position[1] + self.direction])
                 space_2 = self.canvas.is_occupied(self.position[0] + i, self.position[1])
                 if space_2:
                     if isinstance(space_2, Pawn) and space_2.color != self.color:
-                        if space_2.moved == 1: moves.append((self.position[0] + i, self.position[1] + self.direction))
+                        if space_2.moved == 1: moves.append([self.position[0] + i, self.position[1] + self.direction])
+
+        if checking:
+            for i in range(len(moves)):
+                if self.manage_check(moves[i]): moves.pop()
 
         return moves
 
@@ -93,7 +106,7 @@ class Rook(ChessPiece):
     def __init__(self, canvas, position, color):
         ChessPiece.__init__(self, canvas, position, color, "Rook")
 
-    def find_moves(self):
+    def find_moves(self, checking = True):
         moves = []
         for i in range(self.position[1] - 1, -1, -1):
             color = self.canvas.is_occupied(self.position[0], i)
@@ -119,7 +132,10 @@ class Rook(ChessPiece):
                 if color.color != self.color: moves.append([i, self.position[1]])
                 break
             moves.append([i, self.position[1]])
-    
+
+        if checking:
+            for i in range(len(moves)):
+                if self.manage_check(moves[i]): moves.pop()
 
         return moves
 
@@ -127,36 +143,40 @@ class Bishop(ChessPiece):
     def __init__(self, canvas, position, color):
         ChessPiece.__init__(self, canvas, position, color, "Bishop")
 
-    def find_moves(self):
+    def find_moves(self, checking = True):
         moves = []
         for mod in range(1, min(self.position[0] + 1, self.position[1] + 1)):
-            new_space = (self.position[0] - mod, self.position[1] - mod)
+            new_space = [self.position[0] - mod, self.position[1] - mod]
             space = self.canvas.is_occupied(new_space)
             if space: 
                 if space.color != self.color: moves.append([self.position[0] - mod, self.position[1] - mod])
                 break
             moves.append(new_space)
         for mod in range(1, min(8 - self.position[0], self.position[1] + 1)):
-            new_space = (self.position[0] + mod, self.position[1] - mod)
+            new_space = [self.position[0] + mod, self.position[1] - mod]
             space = self.canvas.is_occupied(new_space)
             if space: 
                 if space.color != self.color: moves.append([self.position[0] - mod, self.position[1] - mod])
                 break
             moves.append(new_space)
         for mod in range(1, min(8 - self.position[0], 8 - self.position[1])):
-            new_space = (self.position[0] + mod, self.position[1] + mod)
+            new_space = [self.position[0] + mod, self.position[1] + mod]
             space = self.canvas.is_occupied(new_space)
             if space: 
                 if space.color != self.color: moves.append([self.position[0] - mod, self.position[1] - mod])
                 break
             moves.append(new_space)
         for mod in range(1, min(self.position[0] + 1, 8 - self.position[1])):
-            new_space = (self.position[0] - mod, self.position[1] + mod)
+            new_space = [self.position[0] - mod, self.position[1] + mod]
             space = self.canvas.is_occupied(new_space)
             if space: 
                 if space.color != self.color: moves.append([self.position[0] - mod, self.position[1] - mod])
                 break
             moves.append(new_space)
+        
+        if checking:
+            for i in range(len(moves)):
+                if self.manage_check(moves[i]): moves.pop()
 
         return moves
 
@@ -164,7 +184,7 @@ class Knight(ChessPiece):
     def __init__(self, canvas, position, color):
         ChessPiece.__init__(self, canvas, position, color, "Knight")
 
-    def find_moves(self):
+    def find_moves(self, checking = True):
         moves = []
         for x in [-2, 2]:
             for i in [-1, 1]:
@@ -185,13 +205,17 @@ class Knight(ChessPiece):
                         continue
                     moves.append(pos_move)
         
+        if checking:
+            for i in range(len(moves)):
+                if self.manage_check(moves[i]): moves.pop()
+
         return moves
 
 class King(ChessPiece):
     def __init__(self, canvas, position, color):
         ChessPiece.__init__(self, canvas, position, color, "King")
 
-    def find_moves(self):
+    def find_moves(self, checking = True):
         moves = []
         for x in [-1, 0 , 1]:
             for y in [-1, 0, 1]:
@@ -203,17 +227,20 @@ class King(ChessPiece):
                         if space.color != self.color: moves.append(pos_move)
                         continue
                     moves.append(pos_move)
-        
+        if checking:
+            for i in range(len(moves)):
+                if self.manage_check(moves[i]): moves.pop()
+
         return moves
 
 class Queen(Rook, Bishop):
     def __init__(self, canvas, position, color):
         ChessPiece.__init__(self, canvas, position, color, "Queen")
 
-    def find_moves(self):
+    def find_moves(self, checking = True):
         moves = (
-            *Rook.find_moves(self),
-            *Bishop.find_moves(self),
+            *Rook.find_moves(self, checking),
+            *Bishop.find_moves(self, checking),
         )
 
         return moves

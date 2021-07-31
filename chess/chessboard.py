@@ -13,9 +13,15 @@ class ChessBoard(tk.Canvas):
         tk.Canvas.__init__(self, root, width = self.size, height = self.size)
         self.pack()
 
+        self.kings = {
+          "w" : [],
+          "b" : [] 
+        }
+
         self.draw()
         self.start(pattern)
-
+        
+        print(self.kings)
         root.bind("<Motion>", self.hover)
         self.selected = None
         root.bind("<Button-1>", self.move)
@@ -53,7 +59,9 @@ class ChessBoard(tk.Canvas):
             if i == "n": self.board[y].append(cp.Knight(self, (x,y), color))
             if i == "b": self.board[y].append(cp.Bishop(self, (x,y), color))
             if i == "q": self.board[y].append(cp.Queen(self, (x,y), color))
-            if i == "k": self.board[y].append(cp.King(self, (x,y), color))
+            if i == "k": 
+                self.board[y].append(cp.King(self, (x,y), color))
+                self.kings[color[0]].append(self.board[y][-1])
             
             x += 1
     def get_board(self):
@@ -123,6 +131,8 @@ class ChessBoard(tk.Canvas):
 
         x, y = int(px / self.space_width), int(py / self.space_width)
 
+        print(self.board[y][x])
+
         self.delete("select")
         if not 0 <= x <= 7 or not 0 <= y <= 7: return
 
@@ -137,7 +147,7 @@ class ChessBoard(tk.Canvas):
 
             self.root.bind("<Button-1>", self.place_piece)
             self.root.bind("<Escape>", self.reset_click)
-            self.selected = (x, y)
+            self.selected = [x, y]
 
             self.tag_raise("labels")
             self.tag_raise("pieces")
@@ -149,13 +159,24 @@ class ChessBoard(tk.Canvas):
 
         x, y = int(px / self.space_width), int(py / self.space_width)
 
-        if isinstance(self.selected, tuple) and  0 <= x <= 7 and 0 <= y <= 7:
-            print(self.moves, self.selected)
+        if isinstance(self.selected, list) and  0 <= x <= 7 and 0 <= y <= 7:
+            print(self.moves, self.selected, [x, y])
             if [x, y] in self.moves:
+                if isinstance(self.board[self.selected[1]][self.selected[0]], cp.Pawn):
+                    if 0<=y + self.board[self.selected[1]][self.selected[0]].direction<=7 and x != self.selected[0]:
+                        if (not self.board[y][x] and isinstance(self.board[y + (self.board[self.selected[1]][self.selected[0]].direction * -1)][x], cp.Pawn)
+                          and self.board[y][x].color != self.board[y + (self.board[self.selected[1]][self.selected[0]].direction * -1)][x].color):
+                            self.board[y + (self.board[self.selected[1]][self.selected[0]].direction * -1)][x].delete()
+                            self.board[y + (self.board[self.selected[1]][self.selected[0]].direction * -1)][x] = ""
+                    self.board[self.selected[1]][self.selected[0]].moved += 1
+                if self.board[y][x]:self.board[y][x].delete()
                 self.board[y][x] = self.board[self.selected[1]][self.selected[0]]
-                self.board[self.selected[1]][self.selected[0]].move((x,y))
+                self.board[y][x].move((x,y))
                 self.board[self.selected[1]][self.selected[0]] = ""
+                print(self.board[y][x])
         self.reset_click(e)
+        self.delete("moves")
+        self.delete("selected")
 
     def reset_click(self, e):
         self.delete("select")
@@ -172,6 +193,21 @@ class ChessBoard(tk.Canvas):
             if isinstance(args[0], int) and isinstance(args[1], int):
                 return self.board[args[1]][args[0]]
         return False
+    
+    def check_for_check(self, board, color):
+        moves = self.get_legals(board, "black" if color == "white" else "white")
+        for i in self.kings[color[0]]:
+            if i in moves: return True
+
+    def get_legals(self, board, color):
+        moves = []
+        for y in board:
+            for x in y:
+                if x:
+                    if x.color[0] == color[0]:
+                        for i in x.find_moves(False):
+                            moves.append(i)
+        return moves
 
 class QuickBoard(tk.Canvas):
     def __init__(self, root, pattern = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"):
