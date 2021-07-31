@@ -6,7 +6,7 @@ import chesspieces as cp
 font, text_margin = ("Veranda", 20), 5
 
 class ChessBoard(tk.Canvas):
-    def __init__(self, root, pattern = "rnbqkbnr/pppppppp/8/8/8/pppppppp/PPPPPPPP/RNBQKBNR"):
+    def __init__(self, root, pattern = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"):
         self.size = min(max(min(int(root.winfo_width()/8), int(root.winfo_height()/8)) * 8, 640), 1280)
         self.space_width = self.size / 8
         self.root = root
@@ -116,6 +116,7 @@ class ChessBoard(tk.Canvas):
               tags = "moves", fill = "red")
 
             self.moves = self.board[y][x].find_moves()
+            print(self.moves, self.kings["b"][0].position)
             for i in self.moves:
                 self.create_rectangle(i[0]*self.space_width + margin, i[1]*self.space_width + margin, 
                   (i[0]+1)*self.space_width - margin, (i[1]+1)*self.space_width - margin, 
@@ -125,7 +126,6 @@ class ChessBoard(tk.Canvas):
             self.tag_raise("pieces")
     
     def move(self, e):
-        print(self.board)
         self.root.update()
         px = self.root.winfo_pointerx() - self.winfo_rootx()
         py = self.root.winfo_pointery() - self.winfo_rooty()
@@ -175,6 +175,8 @@ class ChessBoard(tk.Canvas):
         self.delete("moves")
         self.delete("selected")
 
+        print(self.board)
+
     def reset_click(self, e):
         self.delete("select")
         self.selected = None
@@ -194,7 +196,6 @@ class ChessBoard(tk.Canvas):
     def check_for_check(self, board, color):
         moves = self.get_legals(board, "black" if color == "white" else "white")
         for i in self.kings[color[0]]:
-            print(self.kings[color[0]][0].position, moves)
             if i in moves: return True
 
     def get_legals(self, board, color):

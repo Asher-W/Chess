@@ -63,7 +63,7 @@ class ChessPiece:
         self.draw_image()
     
     def manage_check(self, move):
-        tmp_board = self.canvas.board.copy()
+        tmp_board = [[x for x in i] for i in self.canvas.board]
         tmp_board[move[1]][move[0]], tmp_board[self.position[0]][self.position[1]] = self, ""
         if self.canvas.check_for_check(tmp_board, self.color):
             return True
