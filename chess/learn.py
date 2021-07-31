@@ -30,6 +30,8 @@ class Network:
         for index, rows in enumerate(self.shape[1::]):
             self.weights.append(2 * np.random.rand(rows, self.shape[index]).astype(np.float16) - 1)
             self.biases.append(2 * np.random.rand(rows).astype(np.float16) - 1)
+        for i in self.weights: print(len(i), end=", ")
+        print()
     
     def mutate(self, learning_rate):
         for index, connection in enumerate(self.weights):
@@ -52,7 +54,7 @@ class Network:
         # Calculate
         for i, layer in enumerate(nodes[1::]):
             for j in range(len(layer)):
-                nodes[i + 1][j] = sigmoid(np.dot(nodes[i], self.weights[i][j]) + self.biases[i][j])
+                nodes[i][j] = sigmoid(np.dot(nodes[i], self.weights[i][j]) - self.biases[i][j])
         
         self.outputs = nodes[-1]
     
@@ -212,15 +214,19 @@ def run_game(white_net, black_net, max_moves, cmd_print=False):
 
 def produce_children(child_count, shape, learning_rate, parents):
     children = []
+    print("------------------------")
     for i in range(child_count):
         new_bias = []
         new_weights = []
-        
-        for index, row in enumerate(shape[1::]):
-            new_weights.append(random.choice(parents).weights[index + 1])
-            new_bias.append(random.choice(parents).biases[index + 1])
+
+        for index in range(len(shape[1::])):
+            new_weights.append(random.choice(parents).weights[index])
+            new_bias.append(random.choice(parents).biases[index])
         
         children.append(Network(shape = shape, weights = new_weights, biases = new_bias))
+
+        for i in new_weights: print(len(i), end=", ")
+        print()
 
         children[-1].mutate(learning_rate)
     
