@@ -1,6 +1,10 @@
 import numpy as np
 import chess
 import time # Run speed tests
+import copy
+from itertools import permutations
+import random
+import pickle
 
 t1 = time.time()
 
@@ -30,11 +34,11 @@ class Network:
     def mutate(self, change_limit):
         for index, connection in enumerate(self.weights):
             weight_mutation = (2 * np.random.rand(*connection.shape) - 1) * change_limit
-            self.weights[index] = connection * weight_mutation
+            self.weights[index] = connection + weight_mutation
         
         for index, layer in enumerate(self.biases):
             bias_mutation = (2 * np.random.rand(*layer.shape) - 1) * change_limit
-            self.biases[index] = layer * bias_mutation
+            self.biases[index] = layer + bias_mutation
 
     def calculate(self):
         
@@ -145,7 +149,6 @@ class Network:
         for weight in sorted_move_confidence:
             sorted_move_confidence[weight] = sorted_move_confidence[weight] / confidence_weight_sum
 
-        moves_bag = []
         self.move = np.random.choice(list(sorted_move_confidence.keys()), 1, p=list(sorted_move_confidence.values()))[0]
     
     def exec_move(self):
@@ -164,53 +167,139 @@ def run_game(white_net, black_net, max_moves, cmd_print=False):
     black_net.board = game_board
     black_net.side = 1
 
+    if cmd_print:
+            print(game_board, '\n')
+
     total_moves = 0
     while True:
-        if cmd_print:
-            print(game_board, '\n')
-        
         # white - 0, black - 1
         if total_moves % 2 == 0:
             white_net.exec_move()
         else:
             black_net.exec_move()
+        
+        if cmd_print:
+            print(game_board, '\n')
+        
+        final_fen = game_board.board_fen()
 
         if game_board.is_checkmate():
             if total_moves % 2 == 0:
                 white_net.points += 10
-                black_net.point += 1
-                return 'white win', game_board.board_fen()
+                black_net.points += 1
+                del game_board
+                return 'white win', final_fen
             else:
                 white_net.points += 1
                 black_net.points += 10
-                return 'black win', game_board.board_fen()
+                del game_board
+                return 'black win', final_fen
         elif game_board.is_stalemate():
             white_net.points += 5
             black_net.points += 5
-            return 'stalemate', game_board.board_fen()
+            del game_board
+            return 'stalemate', final_fen
         elif game_board.is_insufficient_material():
-            return 'insufficient material', game_board.board_fen()
+            del game_board
+            return 'insufficient material', final_fen
         elif total_moves == max_moves:
             white_net.points -= 2
             black_net.points -= 2
-            return 'maxed', game_board.board_fen()
+            del game_board
+            return 'maxed', final_fen
         
         total_moves += 1
+
+def run_generation(parent, children_count, games_per_child, mutate_limit): # Rename parent to parent_nets if you want to test multiple parents
+    if children_count % (games_per_child + 1) != 0:
+        raise Exception('children_count and games_per_child restritions impossible.')
+    
+    # Uncomment to test multiple parents
+    # if children_count % len(parent_nets) != 0:
+    #     raise Exception('children_count and parent_net restritions impossible.')
+
+    children = []
+    games_child_played = []
+    log_games_played = []
+    
+    # Comment the 3 lines below to test multiple parents
+    for x in range(children_count):
+        children.append(copy.deepcopy(parent))
+        games_child_played.append(0)
+    
+    # Uncomment to test multiple parents
+    # for parent in parent_nets:
+    #     for x in range(int(children_count / len(parent_nets))):
+    #         children.append(copy.deepcopy(parent))
+    #         games_child_played.append(0)
+
+    print('children created') # ---
+    
+    for child in children:
+        child.mutate(mutate_limit)
+    print('children mutated') # ---
+    
+    possible_games = list(permutations(list(range(children_count)), 2))
+
+    while True:
+        possible_game = random.choice(possible_games)
+        if (not possible_game in log_games_played) and (games_child_played[possible_game[0]] < games_per_child) and (games_child_played[possible_game[1]] < games_per_child):
+            net1 = children[possible_game[0]]
+            net2 = children[possible_game[1]]
+        
+            print(run_game(net1, net2, 400, cmd_print=True))
+            log_games_played.append(possible_game)
+            games_child_played[possible_game[0]] += 1
+            games_child_played[possible_game[1]] += 1
+
+            if set(games_child_played) == {games_per_child}:
+                break
+    
+    scores = []
+    for child in children:
+        scores.append(child.points)
+    
+    # Note - someone should probably make something to sort the children and scores but it keeps getting angry and I don't have the time to fix a problem I can only test every 40 minutes
+
+    # Sure, I could change the code to have less downtime but I don't feel like doing that
+
+    # Something to delete the unused children after this function is run should also be added
+
+    return children, scores
+
+def evolution(generations):
+    pass
 
 # Demonstration
 def main():
 
-    net1 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
-    net1.new()
+    parent1 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    parent1.new()
 
-    net2 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
-    net2.new()
+    # Uncomment to test multiple parents
+    # parent2 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    # parent2.new()
 
-    print(run_game(net1, net2, 400, cmd_print=True))
+    # parent3 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    # parent3.new()
 
-    print(net1.points)
-    print(net2.points)
+    # parent4 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    # parent4.new()
+
+    # parent5 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    # parent5.new()
+
+    print('parents created')
+
+    # Comment to test multiple parents
+    nets, points = run_generation(parent1, 50, 4, 0.3)
+
+    # Uncomment to test multiple parents
+    # nets, points = run_generation([parent1, parent2, parent3, parent4, parent5], 50, 4, 0.3)
+    print(nets, points)
 
 main()
 t2 = time.time()
 print(t2 - t1)
+
+# All changes to switch to multiple parents are in the main() and run_generation() functions
