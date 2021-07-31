@@ -210,7 +210,19 @@ def run_game(white_net, black_net, max_moves, cmd_print=False):
         
         total_moves += 1
 
-def run_generation(parent, children_count, games_per_child, mutate_limit): # Rename parent to parent_nets if you want to test multiple parents
+def produce_children(child_count, shape, *parents):
+    children = []
+    for i in child_count:
+        new_bias = []
+        new_weights = []
+        
+        for index, row in enumerate(shape[1::]):
+            new_weights.append(random.choice(parents).weights[index + 1])
+            new_bias.append(random.choice(parents).bias[index + 1])
+        
+        children.append(Network(shape = shape, weights = new_weights, ))
+
+def run_generation(parent, children_count, games_per_child, mutate_limit, selected_children = 5): # Rename parent to parent_nets if you want to test multiple parents
     if children_count % (games_per_child + 1) != 0:
         raise Exception('children_count and games_per_child restritions impossible.')
     
@@ -223,9 +235,9 @@ def run_generation(parent, children_count, games_per_child, mutate_limit): # Ren
     log_games_played = []
     
     # Comment the 3 lines below to test multiple parents
-    for x in range(children_count):
-        children.append(copy.deepcopy(parent))
-        games_child_played.append(0)
+    # for x in range(children_count):
+        # children.append(copy.deepcopy(parent))
+        # games_child_played.append(0)
     
     # Uncomment to test multiple parents
     # for parent in parent_nets:
@@ -265,7 +277,7 @@ def run_generation(parent, children_count, games_per_child, mutate_limit): # Ren
 
     # Something to delete the unused children after this function is run should also be added
 
-    return children, scores
+    return children.sort(reverse=True, key = lambda c:c.points)[:selected_children], scores
 
 def evolution(generations):
     pass
@@ -273,8 +285,8 @@ def evolution(generations):
 # Demonstration
 def main():
 
-    parent1 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
-    parent1.new()
+    template = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
+    template.new()
 
     # Uncomment to test multiple parents
     # parent2 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
@@ -292,7 +304,7 @@ def main():
     print('parents created')
 
     # Comment to test multiple parents
-    nets, points = run_generation(parent1, 50, 4, 0.3)
+    nets, points = run_generation(template, 50, 4, 0.3)
 
     # Uncomment to test multiple parents
     # nets, points = run_generation([parent1, parent2, parent3, parent4, parent5], 50, 4, 0.3)
