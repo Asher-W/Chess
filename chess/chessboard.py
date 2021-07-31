@@ -1,4 +1,5 @@
 import tkinter as tk
+from PIL import Image, ImageTk
 import chesspieces as cp
 
 #font details
@@ -20,8 +21,7 @@ class ChessBoard(tk.Canvas):
 
         self.draw()
         self.start(pattern)
-        
-        print(self.kings)
+
         root.bind("<Motion>", self.hover)
         self.selected = None
         root.bind("<Button-1>", self.move)
@@ -125,13 +125,12 @@ class ChessBoard(tk.Canvas):
             self.tag_raise("pieces")
     
     def move(self, e):
+        print(self.board)
         self.root.update()
         px = self.root.winfo_pointerx() - self.winfo_rootx()
         py = self.root.winfo_pointery() - self.winfo_rooty()
 
         x, y = int(px / self.space_width), int(py / self.space_width)
-
-        print(self.board[y][x])
 
         self.delete("select")
         if not 0 <= x <= 7 or not 0 <= y <= 7: return
@@ -160,7 +159,6 @@ class ChessBoard(tk.Canvas):
         x, y = int(px / self.space_width), int(py / self.space_width)
 
         if isinstance(self.selected, list) and  0 <= x <= 7 and 0 <= y <= 7:
-            print(self.moves, self.selected, [x, y])
             if [x, y] in self.moves:
                 if isinstance(self.board[self.selected[1]][self.selected[0]], cp.Pawn):
                     if 0<=y + self.board[self.selected[1]][self.selected[0]].direction<=7 and x != self.selected[0]:
@@ -173,7 +171,6 @@ class ChessBoard(tk.Canvas):
                 self.board[y][x] = self.board[self.selected[1]][self.selected[0]]
                 self.board[y][x].move((x,y))
                 self.board[self.selected[1]][self.selected[0]] = ""
-                print(self.board[y][x])
         self.reset_click(e)
         self.delete("moves")
         self.delete("selected")
@@ -197,6 +194,7 @@ class ChessBoard(tk.Canvas):
     def check_for_check(self, board, color):
         moves = self.get_legals(board, "black" if color == "white" else "white")
         for i in self.kings[color[0]]:
+            print(self.kings[color[0]][0].position, moves)
             if i in moves: return True
 
     def get_legals(self, board, color):
