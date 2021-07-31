@@ -1,7 +1,8 @@
 import numpy as np
 import chess
-import random
-#from chessboard import display
+import time # Run speed tests
+
+t1 = time.time()
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
@@ -211,3 +212,5 @@ def main():
     print(net2.points)
 
 main()
+t2 = time.time()
+print(t2 - t1)
