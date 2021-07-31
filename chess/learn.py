@@ -12,15 +12,13 @@ class Network:
     move_confidence = {}
     move = None
 
-    def __init__(self, shape=(), weights=[], biases=[], inputs=np.array([]), board=None, side=None, temperature=8, temp_choices=3):
+    def __init__(self, shape=(), weights=[], biases=[], inputs=np.array([]), board=None, side=None):
         self.shape = shape
         self.weights = weights
         self.biases = biases
         self.inputs = inputs
         self.board = board
         self.side = side
-        self.temperature = temperature
-        self.temp_choices = temp_choices
 
     def new(self):
         for index, rows in enumerate(self.shape[1::]):
@@ -135,20 +133,18 @@ class Network:
     
     def select_move(self):
         list_move_confidence = sorted(self.move_confidence.items(), key=lambda x:x[1])
-        if len(list_move_confidence) > self.temp_choices:
-            list_move_confidence = list_move_confidence[-self.temp_choices::]
-
         sorted_move_confidence = dict(list_move_confidence)
 
+        # Temperature
+        confidence_weight_sum = 0
+        for move in sorted_move_confidence:
+            confidence_weight_sum += sorted_move_confidence[move]
+
+        for weight in sorted_move_confidence:
+            sorted_move_confidence[weight] = sorted_move_confidence[weight] / confidence_weight_sum
+
         moves_bag = []
-        for index, move in enumerate(sorted_move_confidence):
-            if index == 0:
-                moves_bag.append(move)
-            else:
-                for x in range(self.temperature ** index):
-                    moves_bag.append(move)
-        
-        self.move = random.choice(moves_bag)
+        self.move = np.random.choice(list(sorted_move_confidence.keys()), 1, p=list(sorted_move_confidence.values()))[0]
     
     def exec_move(self):
         self.get_board_input()
@@ -185,7 +181,7 @@ def main():
         elif board.is_stalemate():
             print('Stalemate')
             break
-        elif total_moves == 300:
+        elif total_moves == 400:
             print('Too many moves')
             break
         
