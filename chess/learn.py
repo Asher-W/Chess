@@ -30,8 +30,6 @@ class Network:
         for index, rows in enumerate(self.shape[1::]):
             self.weights.append(2 * np.random.rand(rows, self.shape[index]).astype(np.float16) - 1)
             self.biases.append(2 * np.random.rand(rows).astype(np.float16) - 1)
-        for i in self.weights: print(len(i), end=", ")
-        print()
     
     def mutate(self, learning_rate):
         for index, connection in enumerate(self.weights):
@@ -54,7 +52,7 @@ class Network:
         # Calculate
         for i, layer in enumerate(nodes[1::]):
             for j in range(len(layer)):
-                nodes[i][j] = sigmoid(np.dot(nodes[i], self.weights[i][j]) - self.biases[i][j])
+                nodes[i + 1][j] = sigmoid(np.dot(nodes[i], self.weights[i][j]) - self.biases[i][j])
         
         self.outputs = nodes[-1]
     
@@ -214,7 +212,6 @@ def run_game(white_net, black_net, max_moves, cmd_print=False):
 
 def produce_children(child_count, shape, learning_rate, parents):
     children = []
-    print("------------------------")
     for i in range(child_count):
         new_bias = []
         new_weights = []
@@ -224,9 +221,6 @@ def produce_children(child_count, shape, learning_rate, parents):
             new_bias.append(random.choice(parents).biases[index])
         
         children.append(Network(shape = shape, weights = new_weights, biases = new_bias))
-
-        for i in new_weights: print(len(i), end=", ")
-        print()
 
         children[-1].mutate(learning_rate)
     
@@ -266,12 +260,13 @@ def run_generation(children_count, games_per_child, learning_rate, parents): # R
     # Something to delete the unused children after this function is run should also be added
 
     return children.sort(reverse=True, key = lambda c:c.points)[:len(parents)]
-
+    
 def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5):
     parents = [Network(shape = shape) for i in range(parent_count)]
     for i in parents: i.new()
     for i in range(epoches):
         parents = run_generation(child_count, game_count, learning_rate, parents)
+        print("generation finished")
     
     return parents[0]
 
@@ -283,7 +278,7 @@ def main():
     print('parents created')
 
     # Comment to test multiple parents
-    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 5, parent_count = 5, child_count = 50, game_count = 4, learning_rate = 0.3)
+    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 3, parent_count = 5, child_count = 50, game_count = 4, learning_rate = 0.3)
 
     print(final)
 
