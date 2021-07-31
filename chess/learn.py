@@ -28,16 +28,16 @@ class Network:
 
     def new(self):
         for index, rows in enumerate(self.shape[1::]):
-            self.weights.append(2 * np.random.rand(rows, self.shape[index]) - 1)
-            self.biases.append(2 * np.random.rand(rows) - 1)
+            self.weights.append(2 * np.random.rand(rows, self.shape[index]).astype(np.float16) - 1)
+            self.biases.append(2 * np.random.rand(rows).astype(np.float16) - 1)
     
-    def mutate(self, change_limit):
+    def mutate(self, learning_rate):
         for index, connection in enumerate(self.weights):
-            weight_mutation = (2 * np.random.rand(*connection.shape) - 1) * change_limit
+            weight_mutation = (2 * np.random.rand(*connection.shape) - 1) * learning_rate
             self.weights[index] = connection + weight_mutation
         
         for index, layer in enumerate(self.biases):
-            bias_mutation = (2 * np.random.rand(*layer.shape) - 1) * change_limit
+            bias_mutation = (2 * np.random.rand(*layer.shape) - 1) * learning_rate
             self.biases[index] = layer + bias_mutation
 
     def calculate(self):
@@ -210,49 +210,35 @@ def run_game(white_net, black_net, max_moves, cmd_print=False):
         
         total_moves += 1
 
-def produce_children(child_count, shape, *parents):
+def produce_children(child_count, shape, learning_rate, parents):
     children = []
-    for i in child_count:
+    for i in range(child_count):
         new_bias = []
         new_weights = []
         
         for index, row in enumerate(shape[1::]):
             new_weights.append(random.choice(parents).weights[index + 1])
-            new_bias.append(random.choice(parents).bias[index + 1])
+            new_bias.append(random.choice(parents).biases[index + 1])
         
-        children.append(Network(shape = shape, weights = new_weights, ))
+        children.append(Network(shape = shape, weights = new_weights, biases = new_bias))
 
-def run_generation(parent, children_count, games_per_child, mutate_limit, selected_children = 5): # Rename parent to parent_nets if you want to test multiple parents
+        children[-1].mutate(learning_rate)
+    
+    return children
+
+def run_generation(children_count, games_per_child, learning_rate, parents): # Rename parent to parent_nets if you want to test multiple parents
     if children_count % (games_per_child + 1) != 0:
         raise Exception('children_count and games_per_child restritions impossible.')
-    
-    # Uncomment to test multiple parents
-    # if children_count % len(parent_nets) != 0:
-    #     raise Exception('children_count and parent_net restritions impossible.')
 
-    children = []
-    games_child_played = []
+    children = produce_children(children_count, parents[0].shape, learning_rate, parents)
+    games_child_played = [0 for i in children]
     log_games_played = []
-    
-    # Comment the 3 lines below to test multiple parents
-    # for x in range(children_count):
-        # children.append(copy.deepcopy(parent))
-        # games_child_played.append(0)
-    
-    # Uncomment to test multiple parents
-    # for parent in parent_nets:
-    #     for x in range(int(children_count / len(parent_nets))):
-    #         children.append(copy.deepcopy(parent))
-    #         games_child_played.append(0)
 
     print('children created') # ---
     
-    for child in children:
-        child.mutate(mutate_limit)
-    print('children mutated') # ---
-    
     possible_games = list(permutations(list(range(children_count)), 2))
 
+    print()
     while True:
         possible_game = random.choice(possible_games)
         if (not possible_game in log_games_played) and (games_child_played[possible_game[0]] < games_per_child) and (games_child_played[possible_game[1]] < games_per_child):
@@ -267,52 +253,36 @@ def run_generation(parent, children_count, games_per_child, mutate_limit, select
             if set(games_child_played) == {games_per_child}:
                 break
     
-    scores = []
-    for child in children:
-        scores.append(child.points)
-    
     # Note - someone should probably make something to sort the children and scores but it keeps getting angry and I don't have the time to fix a problem I can only test every 40 minutes
 
     # Sure, I could change the code to have less downtime but I don't feel like doing that
 
     # Something to delete the unused children after this function is run should also be added
 
-    return children.sort(reverse=True, key = lambda c:c.points)[:selected_children], scores
+    return children.sort(reverse=True, key = lambda c:c.points)[:len(parents)]
 
-def evolution(generations):
-    pass
+def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5):
+    parents = [Network(shape = shape) for i in range(parent_count)]
+    for i in parents: i.new()
+    for i in range(epoches):
+        parents = run_generation(child_count, game_count, learning_rate, parents)
+    
+    return parents[0]
 
 # Demonstration
 def main():
-
     template = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
     template.new()
-
-    # Uncomment to test multiple parents
-    # parent2 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
-    # parent2.new()
-
-    # parent3 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
-    # parent3.new()
-
-    # parent4 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
-    # parent4.new()
-
-    # parent5 = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
-    # parent5.new()
 
     print('parents created')
 
     # Comment to test multiple parents
-    nets, points = run_generation(template, 50, 4, 0.3)
+    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 5, parent_count = 5, child_count = 50, game_count = 4, learning_rate = 0.3)
 
-    # Uncomment to test multiple parents
-    # nets, points = run_generation([parent1, parent2, parent3, parent4, parent5], 50, 4, 0.3)
-    print(nets, points)
+    print(final)
 
     outfile = open('networks.p','wb')
-    pickle.dump(nets, outfile)
-    pickle.dump(points, outfile)
+    pickle.dump(final, outfile)
     outfile.close()
 
 main()
