@@ -217,7 +217,7 @@ def run_game(white_net, black_net, max_moves, canvas, cmd_print=False):
             white_net.points -= 8
             black_net.points -= 8
             del game_board
-            return 'maxed moves', final_fen
+            return 'max moves reached', final_fen
         
         total_moves += 1
 
@@ -290,8 +290,8 @@ def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_c
             outfile = open('OutPuts/networks_Gen_{0}.p'.format(gen),'wb')
             pickle.dump(parents, outfile)
             outfile.close()
-            print("partial version saved - generation {0}".format(i))
-        print("generation finished - {0}".format(gen))
+            print("partially trained  AI version saved")
+        print("generation {0} finished - top points: ".format(gen, parents[0].points))
 
         gen += 1
     
