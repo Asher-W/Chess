@@ -1,4 +1,8 @@
 import numpy as np
+
+from chessboard import QuickBoard
+import tkinter
+
 import chess
 import time # Run speed tests
 import copy
@@ -158,7 +162,7 @@ class Network:
         self.select_move()
         self.board.push(chess.Move.from_uci(self.move))
 
-def run_game(white_net, black_net, max_moves, cmd_print=False):
+def run_game(white_net, black_net, max_moves, canvas, cmd_print=False):
     game_board = chess.Board()
     
     white_net.board = game_board
@@ -168,9 +172,10 @@ def run_game(white_net, black_net, max_moves, cmd_print=False):
     black_net.side = 1
 
     if cmd_print:
-            print(game_board, '\n')
+        print(game_board, '\n')
 
     total_moves = 0
+
     while True:
         # white - 0, black - 1
         if total_moves % 2 == 0:
@@ -180,8 +185,12 @@ def run_game(white_net, black_net, max_moves, cmd_print=False):
         
         if cmd_print:
             print(game_board, '\n')
+
         
         final_fen = game_board.board_fen()
+
+        canvas.root.update()
+        canvas.draw_pieces(final_fen)
 
         if game_board.is_checkmate():
             if total_moves % 2 == 0:
@@ -226,7 +235,7 @@ def produce_children(child_count, shape, learning_rate, parents):
     
     return children
 
-def run_generation(children_count, games_per_child, learning_rate, parents): # Rename parent to parent_nets if you want to test multiple parents
+def run_generation(children_count, games_per_child, learning_rate, parents, canvas): # Rename parent to parent_nets if you want to test multiple parents
     if children_count % (games_per_child + 1) != 0:
         raise Exception('children_count and games_per_child restritions impossible.')
 
@@ -245,7 +254,7 @@ def run_generation(children_count, games_per_child, learning_rate, parents): # R
             net1 = children[possible_game[0]]
             net2 = children[possible_game[1]]
         
-            print(run_game(net1, net2, 400, cmd_print=True))
+            print(run_game(net1, net2, 400, canvas, cmd_print=True))
             log_games_played.append(possible_game)
             games_child_played[possible_game[0]] += 1
             games_child_played[possible_game[1]] += 1
@@ -258,15 +267,21 @@ def run_generation(children_count, games_per_child, learning_rate, parents): # R
     # Sure, I could change the code to have less downtime but I don't feel like doing that
 
     # Something to delete the unused children after this function is run should also be added
-
-    return children.sort(reverse=True, key = lambda c:c.points)[:len(parents)]
+    
+    children.sort(reverse=True, key = lambda c:c.points)[:len(parents)]
+    return children
     
 def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5):
+    root = tkinter.Tk()
+    canvas = QuickBoard(root)
+
     parents = [Network(shape = shape) for i in range(parent_count)]
     for i in parents: i.new()
     for i in range(epoches):
-        parents = run_generation(child_count, game_count, learning_rate, parents)
+        parents = run_generation(child_count, game_count, learning_rate, parents, canvas)
         print("generation finished")
+    
+    root.mainloop()
     
     return parents[0]
 

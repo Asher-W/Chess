@@ -232,10 +232,7 @@ class QuickBoard(tk.Canvas):
 
     def draw_pieces(self, pattern):
 
-        if not hasattr(self.root, "chess_piece_images"):
-            self.root.chess_piece_images = []
-        elif not isinstance(self.root.chess_piece_images, list):
-            self.root.chess_piece_images = []
+        self.root.chess_piece_images = []
 
         self.delete("pieces")
 
