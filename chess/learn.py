@@ -4,6 +4,8 @@ import os
 from chessboard import QuickBoard
 import tkinter
 
+from numpy.random.mtrand import rand
+
 import chess
 import time # Run speed tests
 import copy
@@ -228,8 +230,8 @@ def produce_children(child_count, shape, mutation_rate, parents):
         new_weights = []
 
         for index in range(len(shape[1::])):
-            new_weights.append(parents[random.randint(0, len(parents)-1)].weights[index])
-            new_bias.append(parents[random.randint(0, len(parents)-1)].biases[index])
+            new_weights.append(random.choice(parents).weights[index])
+            new_bias.append(random.choice(parents).biases[index])
         
         children.append(Network(shape = shape, weights = new_weights, biases = new_bias))
 
@@ -244,14 +246,13 @@ def run_generation(children_count, games_per_child, mutation_rate, parents, canv
     children = produce_children(children_count, parents[0].shape, mutation_rate, parents)
     games_child_played = [0 for i in children]
     log_games_played = []
-
-    print('children created') # ---
+    
+    print('\n', 'children created') # ---
     
     possible_games = list(permutations(list(range(children_count)), 2))
 
-    print()
-    while True:
-        possible_game = possible_games[random.randint(0, len(possible_games)-1)]
+    random.shuffle(possible_games)
+    for possible_game in possible_games:
         if (not possible_game in log_games_played) and (games_child_played[possible_game[0]] < games_per_child) and (games_child_played[possible_game[1]] < games_per_child):
             net1 = children[possible_game[0]]
             net2 = children[possible_game[1]]
@@ -287,11 +288,11 @@ def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_co
     while 1:
         parents = run_generation(child_count, game_count, min(mutation_rate / (gen/10), mutation_rate), parents, canvas)
         if gen % save_stage == 0:
-            outfile = open('OutPuts/networks_Gen_{0}.p'.format(gen),'wb')
+            outfile = open('Outputs/networks_Gen_{0}.p'.format(gen),'wb')
             pickle.dump(parents, outfile)
             outfile.close()
 
-            old_file = "Outputs/networks_Gen_{0}".format(gen - (save_stage * 3))
+            old_file = "Outputs/networks_Gen_{0}.p".format(gen - (save_stage * 3))
             if os.path.exists(old_file): os.remove(old_file)
 
             print("partially trained  AI version saved")
