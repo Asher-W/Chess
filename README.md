@@ -7,6 +7,7 @@ The goal of this project is to make some AI that is at least somewhat good at ch
 ### How it learns
 
 This AI learns via a genetic algorithm meaning it simulates multiple generations where the best networks get to pass on their weights and biases to the next generation.
+
 ### Network structure
 
 Each network consists of 769 input nodes, 5 1000 node hidden layers, and 4160 output nodes.
