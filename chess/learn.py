@@ -276,7 +276,9 @@ def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_c
     root = tkinter.Tk()
     canvas = QuickBoard(root)
 
-    if not parents: parents = [Network(shape = shape) for i in range(parent_count)]
+    if not isinstance(parents, list): parents = [Network(shape = shape) for i in range(parent_count)]
+    if not all(isinstance(i, Network) for i in parents): parents = [Network(shape = shape) for i in range(parent_count)]
+    
     for i in parents: i.new()
     # uncomment for a limited run-time
     # for i in range(epoches):
