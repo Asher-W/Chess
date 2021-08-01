@@ -272,11 +272,11 @@ def run_generation(children_count, games_per_child, learning_rate, parents, canv
     children.sort(reverse=True, key = lambda c:c.points)
     return children[:len(parents)]
     
-def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5, save_stage = 10):
+def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5, save_stage = 10, parents = None):
     root = tkinter.Tk()
     canvas = QuickBoard(root)
 
-    parents = [Network(shape = shape) for i in range(parent_count)]
+    if not parents: parents = [Network(shape = shape) for i in range(parent_count)]
     for i in parents: i.new()
     # uncomment for a limited run-time
     # for i in range(epoches):
@@ -296,12 +296,20 @@ def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_c
     
     return parents[0]
 
+def load_save(file_name):
+    file = open(file_name)
+    return pickle.load(file)
+
 # Demonstration
 def main():
     template = Network(shape=(769, 1000, 1000, 1000, 1000, 1000, 4160))
     template.new()
 
     print('parents created')
+
+    file = "Outputs/networks_Gen_10.p"
+
+    open()
 
     # Comment to test multiple parents
     final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 150, parent_count = 3, child_count = 16, game_count = 3, learning_rate = 0.3, save_stage = 25)
