@@ -1,4 +1,5 @@
 import numpy as np
+import threading
 
 from chessboard import QuickBoard
 import tkinter
@@ -278,7 +279,7 @@ def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_c
 
     if not isinstance(parents, list): parents = [Network(shape = shape) for i in range(parent_count)]
     if not all(isinstance(i, Network) for i in parents): parents = [Network(shape = shape) for i in range(parent_count)]
-    
+
     for i in parents: i.new()
     # uncomment for a limited run-time
     # for i in range(epoches):
@@ -310,8 +311,6 @@ def main():
     print('parents created')
 
     file = "Outputs/networks_Gen_10.p"
-
-    open()
 
     # Comment to test multiple parents
     final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 150, parent_count = 3, child_count = 16, game_count = 3, learning_rate = 0.3, save_stage = 25)
