@@ -1,5 +1,5 @@
 import numpy as np
-import threading
+import os
 
 from chessboard import QuickBoard
 import tkinter
@@ -228,8 +228,8 @@ def produce_children(child_count, shape, learning_rate, parents):
         new_weights = []
 
         for index in range(len(shape[1::])):
-            new_weights.append(random.choice(parents).weights[index])
-            new_bias.append(random.choice(parents).biases[index])
+            new_weights.append(parents[random.randint(0, len(parents)-1)].weights[index])
+            new_bias.append(parents[random.randint(0, len(parents)-1)].biases[index])
         
         children.append(Network(shape = shape, weights = new_weights, biases = new_bias))
 
@@ -251,7 +251,7 @@ def run_generation(children_count, games_per_child, learning_rate, parents, canv
 
     print()
     while True:
-        possible_game = random.choice(possible_games)
+        possible_game = possible_games[random.randint(0, len(possible_games)-1)]
         if (not possible_game in log_games_played) and (games_child_played[possible_game[0]] < games_per_child) and (games_child_played[possible_game[1]] < games_per_child):
             net1 = children[possible_game[0]]
             net2 = children[possible_game[1]]
@@ -290,8 +290,12 @@ def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_c
             outfile = open('OutPuts/networks_Gen_{0}.p'.format(gen),'wb')
             pickle.dump(parents, outfile)
             outfile.close()
+
+            old_file = "Outputs/networks_Gen_{0}".format(gen - (save_stage * 3))
+            if os.path.exists(old_file): os.remove(old_file)
+
             print("partially trained  AI version saved")
-        print("generation {0} finished - top points: ".format(gen, parents[0].points))
+        print("generation {0} finished - top points: {1}".format(gen, parents[0].points))
 
         gen += 1
     
@@ -313,7 +317,7 @@ def main():
     file = "Outputs/networks_Gen_10.p"
 
     # Comment to test multiple parents
-    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 150, parent_count = 3, child_count = 16, game_count = 3, learning_rate = 0.3, save_stage = 25)
+    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 150, parent_count = 3, child_count = 16, game_count = 3, learning_rate = 0.3, save_stage = 5)
 
     print(final)
 
