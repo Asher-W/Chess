@@ -196,11 +196,11 @@ def run_game(white_net, black_net, max_moves, canvas, cmd_print=False):
         if game_board.is_checkmate():
             if total_moves % 2 == 0:
                 white_net.points += 10
-                black_net.points += 1
+                black_net.points -= 5
                 del game_board
                 return 'white win', final_fen
             else:
-                white_net.points += 1
+                white_net.points -= 5
                 black_net.points += 10
                 del game_board
                 return 'black win', final_fen
@@ -213,10 +213,10 @@ def run_game(white_net, black_net, max_moves, canvas, cmd_print=False):
             del game_board
             return 'insufficient material', final_fen
         elif total_moves == max_moves:
-            white_net.points -= 2
-            black_net.points -= 2
+            white_net.points -= 8
+            black_net.points -= 8
             del game_board
-            return 'maxed', final_fen
+            return 'maxed moves', final_fen
         
         total_moves += 1
 
@@ -255,7 +255,7 @@ def run_generation(children_count, games_per_child, learning_rate, parents, canv
             net1 = children[possible_game[0]]
             net2 = children[possible_game[1]]
         
-            print(run_game(net1, net2, 400, canvas, cmd_print=True))
+            print(run_game(net1, net2, 400, canvas, cmd_print=False))
             log_games_played.append(possible_game)
             games_child_played[possible_game[0]] += 1
             games_child_played[possible_game[1]] += 1
@@ -269,18 +269,28 @@ def run_generation(children_count, games_per_child, learning_rate, parents, canv
 
     # Something to delete the unused children after this function is run should also be added
     
-    children.sort(reverse=True, key = lambda c:c.points)[:len(parents)]
-    return children
+    children.sort(reverse=True, key = lambda c:c.points)
+    return children[:len(parents)]
     
-def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5):
+def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5, save_stage = 25):
     root = tkinter.Tk()
     canvas = QuickBoard(root)
 
     parents = [Network(shape = shape) for i in range(parent_count)]
     for i in parents: i.new()
-    for i in range(epoches):
+    # uncomment for a limited run-time
+    # for i in range(epoches):
+    gen = 0
+    while 1:
         parents = run_generation(child_count, game_count, learning_rate, parents, canvas)
+        if gen % save_stage == 0:
+            outfile = open('networks_Gen_{0}.p'.format(gen),'wb')
+            pickle.dump(parents, outfile)
+            outfile.close()
+            print("partial version saved - generation {0}".format(i))
         print("generation finished")
+
+        gen += 1
     
     root.mainloop()
     
@@ -294,7 +304,7 @@ def main():
     print('parents created')
 
     # Comment to test multiple parents
-    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 3, parent_count = 5, child_count = 50, game_count = 4, learning_rate = 0.3)
+    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 150, parent_count = 3, child_count = 16, game_count = 3, learning_rate = 0.1, save_stage = 25)
 
     print(final)
 
