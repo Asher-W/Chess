@@ -274,7 +274,7 @@ def run_generation(children_count, games_per_child, mutation_rate, parents, canv
     children.sort(reverse=True, key = lambda c:c.points)
     return children[:len(parents)]
     
-def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_count = 5, mutation_rate = 0.5, save_stage = 10, parents = None):
+def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_count = 5, mutation_rate = 0.5, mutation_reduction_rate = 9/10, save_stage = 10, parents = None):
     root = tkinter.Tk()
     canvas = QuickBoard(root)
 
@@ -286,7 +286,7 @@ def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_co
     # for i in range(epochs):
     gen = 1
     while 1:
-        parents = run_generation(child_count, game_count, min(mutation_rate / (gen/10), mutation_rate), parents, canvas)
+        parents = run_generation(child_count, game_count, min(mutation_rate * (mutation_reduction_rate ** gen), 1), parents, canvas)
         if gen % save_stage == 0:
             outfile = open('Outputs/networks_Gen_{0}.p'.format(gen),'wb')
             pickle.dump(parents, outfile)
