@@ -36,13 +36,13 @@ class Network:
             self.weights.append(2 * np.random.rand(rows, self.shape[index]).astype(np.float16) - 1)
             self.biases.append(2 * np.random.rand(rows).astype(np.float16) - 1)
     
-    def mutate(self, learning_rate):
+    def mutate(self, mutation_rate):
         for index, connection in enumerate(self.weights):
-            weight_mutation = (2 * np.random.rand(*connection.shape) - 1) * learning_rate
+            weight_mutation = (2 * np.random.rand(*connection.shape) - 1) * mutation_rate
             self.weights[index] = connection + weight_mutation
         
         for index, layer in enumerate(self.biases):
-            bias_mutation = (2 * np.random.rand(*layer.shape) - 1) * learning_rate
+            bias_mutation = (2 * np.random.rand(*layer.shape) - 1) * mutation_rate
             self.biases[index] = layer + bias_mutation
 
     def calculate(self):
@@ -221,7 +221,7 @@ def run_game(white_net, black_net, max_moves, canvas, cmd_print=False):
         
         total_moves += 1
 
-def produce_children(child_count, shape, learning_rate, parents):
+def produce_children(child_count, shape, mutation_rate, parents):
     children = []
     for i in range(child_count):
         new_bias = []
@@ -233,15 +233,15 @@ def produce_children(child_count, shape, learning_rate, parents):
         
         children.append(Network(shape = shape, weights = new_weights, biases = new_bias))
 
-        children[-1].mutate(learning_rate)
+        children[-1].mutate(mutation_rate)
     
     return children
 
-def run_generation(children_count, games_per_child, learning_rate, parents, canvas): # Rename parent to parent_nets if you want to test multiple parents
+def run_generation(children_count, games_per_child, mutation_rate, parents, canvas): # Rename parent to parent_nets if you want to test multiple parents
     if children_count % (games_per_child + 1) != 0:
         raise Exception('children_count and games_per_child restritions impossible.')
 
-    children = produce_children(children_count, parents[0].shape, learning_rate, parents)
+    children = produce_children(children_count, parents[0].shape, mutation_rate, parents)
     games_child_played = [0 for i in children]
     log_games_played = []
 
@@ -273,7 +273,7 @@ def run_generation(children_count, games_per_child, learning_rate, parents, canv
     children.sort(reverse=True, key = lambda c:c.points)
     return children[:len(parents)]
     
-def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_count = 5, learning_rate = 0.5, save_stage = 10, parents = None):
+def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_count = 5, mutation_rate = 0.5, save_stage = 10, parents = None):
     root = tkinter.Tk()
     canvas = QuickBoard(root)
 
@@ -282,10 +282,10 @@ def run_evolution(shape, epoches = 5, parent_count = 5, child_count = 50, game_c
 
     for i in parents: i.new()
     # uncomment for a limited run-time
-    # for i in range(epoches):
+    # for i in range(epochs):
     gen = 1
     while 1:
-        parents = run_generation(child_count, game_count, min(learning_rate / (gen/10), learning_rate), parents, canvas)
+        parents = run_generation(child_count, game_count, min(mutation_rate / (gen/10), mutation_rate), parents, canvas)
         if gen % save_stage == 0:
             outfile = open('OutPuts/networks_Gen_{0}.p'.format(gen),'wb')
             pickle.dump(parents, outfile)
@@ -317,7 +317,7 @@ def main():
     file = "Outputs/networks_Gen_10.p"
 
     # Comment to test multiple parents
-    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epoches = 150, parent_count = 3, child_count = 16, game_count = 3, learning_rate = 0.3, save_stage = 5)
+    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epochs = 150, parent_count = 3, child_count = 16, game_count = 3, mutation_rate = 0.3, save_stage = 5)
 
     print(final)
 
