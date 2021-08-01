@@ -188,9 +188,10 @@ def run_game(white_net, black_net, max_moves, canvas, cmd_print=False):
 
         
         final_fen = game_board.board_fen()
-
-        canvas.root.update()
+        
         canvas.draw_pieces(final_fen)
+        canvas.root.update()
+        
 
         if game_board.is_checkmate():
             if total_moves % 2 == 0:

@@ -116,7 +116,6 @@ class ChessBoard(tk.Canvas):
               tags = "moves", fill = "red")
 
             self.moves = self.board[y][x].find_moves()
-            print(self.moves, self.kings["b"][0].position)
             for i in self.moves:
                 self.create_rectangle(i[0]*self.space_width + margin, i[1]*self.space_width + margin, 
                   (i[0]+1)*self.space_width - margin, (i[1]+1)*self.space_width - margin, 
@@ -174,8 +173,6 @@ class ChessBoard(tk.Canvas):
         self.reset_click(e)
         self.delete("moves")
         self.delete("selected")
-
-        print(self.board)
 
     def reset_click(self, e):
         self.delete("select")
@@ -246,7 +243,7 @@ class QuickBoard(tk.Canvas):
             if i.isnumeric():
                 for i in range(int(i)):
                     self.board[y].append("")
-                x += int(i)
+                x += int(i) + 1
                 continue
             i_val = ord(i)
             color = "b" if i_val > 97 else "w"
