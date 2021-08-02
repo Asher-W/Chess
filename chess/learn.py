@@ -201,25 +201,25 @@ def run_game(white_net, black_net, max_moves, canvas, cmd_print=False):
                 white_net.points += 10
                 black_net.points -= 5
                 del game_board
-                return 'white win', final_fen
+                return 'white wins'
             else:
                 white_net.points -= 5
                 black_net.points += 10
                 del game_board
-                return 'black win', final_fen
+                return 'black wins'
         elif game_board.is_stalemate():
             white_net.points += 5
             black_net.points += 5
             del game_board
-            return 'stalemate', final_fen
+            return 'stalemate'
         elif game_board.is_insufficient_material():
             del game_board
-            return 'insufficient material', final_fen
+            return 'insufficient material'
         elif total_moves == max_moves:
             white_net.points -= 8
             black_net.points -= 8
             del game_board
-            return 'max moves reached', final_fen
+            return 'max moves reached'
         
         total_moves += 1
 
@@ -274,7 +274,7 @@ def run_generation(children_count, games_per_child, mutation_rate, parents, canv
     children.sort(reverse=True, key = lambda c:c.points)
     return children[:len(parents)]
     
-def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_count = 5, mutation_rate = 0.5, mutation_reduction_rate = 9/10, save_stage = 10, parents = None):
+def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_count = 5, mutation_rate = 0.5, mutation_reduction_rate = 99/100, save_stage = 10, parents = None):
     root = tkinter.Tk()
     canvas = QuickBoard(root)
 
@@ -305,8 +305,10 @@ def run_evolution(shape, epochs = 5, parent_count = 5, child_count = 50, game_co
     return parents[0]
 
 def load_save(file_name):
-    file = open(file_name)
-    return pickle.load(file)
+    file = open(file_name, "rb")
+    output = pickle.load(file)
+    file.close()
+    return output
 
 # Demonstration
 def main():
@@ -315,10 +317,10 @@ def main():
 
     print('parents created')
 
-    file = "Outputs/networks_Gen_10.p"
+    file = "Outputs/networks_Gen_35.p"
 
     # Comment to test multiple parents
-    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epochs = 150, parent_count = 3, child_count = 16, game_count = 3, mutation_rate = 0.3, save_stage = 5)
+    final = run_evolution(shape = (769, 1000, 1000, 1000, 1000, 1000, 4160), epochs = 150, parent_count = 3, child_count = 16, game_count = 3, mutation_rate = 0.3, save_stage = 5, parents = load_save(file))
 
     print(final)
 
@@ -326,7 +328,7 @@ def main():
     pickle.dump(final, outfile)
     outfile.close()
 
-main()
+# main()
 t2 = time.time()
 print(t2 - t1)
 

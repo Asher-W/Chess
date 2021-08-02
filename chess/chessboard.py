@@ -5,6 +5,9 @@ import chesspieces as cp
 #font details
 font, text_margin = ("Veranda", 20), 5
 
+primary_color = "tan"
+secondary_color = "SpringGreen4"
+
 class ChessBoard(tk.Canvas):
     def __init__(self, root, pattern = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"):
         self.size = min(max(min(int(root.winfo_width()/8), int(root.winfo_height()/8)) * 8, 640), 1280)
@@ -30,12 +33,12 @@ class ChessBoard(tk.Canvas):
         for x in range(8):
             for y in range(8): 
                 self.create_rectangle(x*self.space_width, y*self.space_width, (x+1)*self.space_width, (y+1)*self.space_width,
-                  fill = "black" if (x % 2) - (y % 2) else "white")
+                  fill = secondary_color if (x % 2) - (y % 2) else primary_color)
                 if not x:
                     self.create_text(text_margin, (y*self.space_width) + text_margin, anchor = tk.NW,
-                      fill = "white" if y % 2 else "black", font = font, text = y + 1, tags = "labels")
+                      fill = primary_color if y % 2 else secondary_color, font = font, text = y + 1, tags = "labels")
             self.create_text((x + 1)*self.space_width - text_margin, 8*self.space_width - text_margin, anchor = tk.SE,
-              fill = "black" if x % 2 else "white", font = font, text = chr(x + 97), tags ="labels")
+              fill = secondary_color if x % 2 else primary_color, font = font, text = chr(x + 97), tags ="labels")
             
     def start(self, pattern):
         x,y = 0,0
@@ -217,10 +220,10 @@ class QuickBoard(tk.Canvas):
         for x in range(8):
             for y in range(8):
                 self.create_rectangle(x*self.space_width, y*self.space_width, (x+1)*self.space_width, (y+1)*self.space_width,
-                  fill = "black" if (x % 2) - (y % 2) else "white")
+                  fill = secondary_color if (x % 2) - (y % 2) else primary_color)
                 if not x:
                     self.create_text(text_margin, (y*self.space_width) + text_margin, anchor = tk.NW,
-                      fill = "white" if y % 2 else "black", font = font, text = y + 1, tags = "labels")
+                      fill = primary_color if y % 2 else secondary_color, font = font, text = y + 1, tags = "labels")
             self.create_text((x + 1)*self.space_width - text_margin, 8*self.space_width - text_margin, anchor = tk.SE,
               fill = "black" if x % 2 else "white", font = font, text = chr(x + 97), tags ="labels")
     

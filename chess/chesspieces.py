@@ -2,7 +2,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 
 #image location
-sprite_folder = "sprites"
+sprite_folder = "chess/sprites"
 sprite_names = {
   "wPawn" : "/".join([sprite_folder, "WhitePawn.png"]),
   "bPawn" : "/".join([sprite_folder, "BlackPawn.png"]),
